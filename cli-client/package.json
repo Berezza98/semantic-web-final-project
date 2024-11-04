@@ -1,0 +1,24 @@
+{
+  "name": "cli-client",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node --experimental-transform-types ./main.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "figlet": "^1.8.0",
+    "inquirer": "^12.0.1",
+    "ora": "^8.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.8.6"
+  }
+}

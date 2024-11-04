@@ -1,0 +1,25 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node --experimental-transform-types --watch ./main.ts",
+    "start2": "tsx watch ./main.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.8.6",
+    "@types/sparql-http-client": "^3.0.4",
+    "tsx": "^4.19.2"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "fastify": "^5.1.0",
+    "sparql-http-client": "^3.0.1"
+  }
+}
