@@ -4,6 +4,7 @@ import { JSONSchemaType } from "ajv";
 import { DataProvider, GetMoviesQuery, GetMoviesReply } from "../interfaces";
 import { BaseController } from "../common";
 import { TYPES } from "../dependencyInjectionTypes";
+import { setTimeout } from "timers/promises";
 
 @injectable()
 export class MovieController extends BaseController {
@@ -39,6 +40,8 @@ export class MovieController extends BaseController {
         limit,
         offset,
       });
+
+      await setTimeout(1000);
 
       return movies;
     });
