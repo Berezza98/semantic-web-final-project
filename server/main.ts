@@ -1,8 +1,13 @@
-import { sparqlDataProviderService } from './services';
+import 'reflect-metadata';
+
+import { TYPES } from './dependencyInjectionTypes';
+import { container } from './inversify.config';
 import { WebServer } from './server';
 
 async function main() {
-  await new WebServer(sparqlDataProviderService).start();
+  const webServer = container.get<WebServer>(TYPES.WebServer);
+
+  webServer.start();
 }
 
 main();

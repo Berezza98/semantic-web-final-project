@@ -1,53 +1,20 @@
-import { JSONSchemaType } from 'ajv';
-import Fastify, { FastifyInstance, FastifySchema } from 'fastify';
-import { DataProvider, GetMoviesQuery, GetMoviesReply } from './interfaces';
+import Fastify, { FastifyInstance } from 'fastify';
+import { inject, injectable } from 'inversify';
+import { BaseController } from './common';
+import { TYPES } from './dependencyInjectionTypes';
 
+@injectable()
 export class WebServer {
-  fastify: FastifyInstance = Fastify({
+  private fastify: FastifyInstance = Fastify({
     logger: true
   });
 
-  dataProvider: DataProvider;
-
-  constructor (dataProvider: DataProvider) {
-    this.dataProvider = dataProvider;
-
-    this.addHandlers();
+  constructor (@inject(TYPES.MovieController) private movieController: BaseController) {
+    this.addControllers();
   }
 
-  addHandlers() {
-    this.fastify.get('/', async (request, reply) => {
-      return { hello: 'world' }
-    });
-
-    const queryStringJsonSchema: JSONSchemaType<GetMoviesQuery> = {
-      type: 'object',
-      properties: {
-        offset: { type: 'integer' },
-        limit: { type: 'integer' },
-      },
-      required: ['limit', 'offset'],
-    };
-
-    const schema: FastifySchema = {
-      querystring: queryStringJsonSchema,
-    };
-    
-    this.fastify.get<{
-      Querystring: GetMoviesQuery,
-      Reply: GetMoviesReply,
-    }>('/get-movies', { schema }, async (request, reply) => {
-      const { limit, offset } = request.query;
-
-      console.log(request.query);
-
-      const movies = await this.dataProvider.getMovies({
-        limit,
-        offset,
-      });
-
-      return movies;
-    });
+  private addControllers() {
+    this.movieController.bindRoutes(this.fastify);
   }
 
   async start() {

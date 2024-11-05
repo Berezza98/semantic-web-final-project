@@ -1,8 +1,10 @@
 import SparqlClient from 'sparql-http-client';
+import { injectable } from 'inversify';
 
 import { DataProvider, DataProviderError, Movie } from "../interfaces";
 
-class SrarqlDataProviderService implements DataProvider {
+@injectable()
+export class SrarqlDataProviderService implements DataProvider {
   client: SparqlClient;
 
   constructor() {
@@ -63,5 +65,3 @@ class SrarqlDataProviderService implements DataProvider {
       }
   }
 }
-
-export const sparqlDataProviderService = new SrarqlDataProviderService();
