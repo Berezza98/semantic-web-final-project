@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "type": "module",
-  "main": "index.js",
+  "main": "./dist/main.cjs",
+  "exports": "./dist/main.mjs",
   "scripts": {
     "start": "tsx ./main.ts",
+    "build": "pkgroll",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -22,6 +24,7 @@
   "devDependencies": {
     "@types/figlet": "^1.7.0",
     "@types/node": "^22.8.6",
+    "pkgroll": "^2.5.1",
     "tsx": "^4.19.2"
   }
 }

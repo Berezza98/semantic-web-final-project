@@ -1,2 +1,4 @@
 server/node_modules
+server/dist
 cli-client/node_modules
+cli-client/dist
