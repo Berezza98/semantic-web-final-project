@@ -1,5 +1,5 @@
-import { apiClient } from "./client";
-import { Movie } from "../interfaces";
+import { apiClient } from "./client.js";
+import { Movie } from "../interfaces/index.js";
 
 export async function getMovies(page: number = 0): Promise<Movie[]> {
   const ITEMS_PER_PAGE = 10;

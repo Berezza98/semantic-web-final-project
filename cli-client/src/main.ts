@@ -3,7 +3,7 @@ import inquirer from 'inquirer';
 import figlet from 'figlet';
 import chalk from 'chalk';
 
-import { getMovies } from './api';
+import { getMovies } from './api/index.js';
 
 console.log(
   chalk.yellow(figlet.textSync("MEGOMOVIES", { horizontalLayout: "full" }))

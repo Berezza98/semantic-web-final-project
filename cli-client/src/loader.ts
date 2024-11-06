@@ -1,5 +1,5 @@
 import ora, { Ora } from "ora";
-import { ILoader } from "./interfaces";
+import { ILoader } from "./interfaces/index.js";
 
 class Loader implements ILoader {
   spinner: Ora | null = null;
