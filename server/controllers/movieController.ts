@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifySchema } from "fastify";
 import { inject, injectable } from "inversify";
 import { JSONSchemaType } from "ajv";
-import { DataProvider, GetMoviesQuery, GetMoviesReply } from "../interfaces";
+import { DataProvider, GetMovieActorsQuery, GetMovieActorsReply, GetMoviesQuery, GetMoviesReply } from "../interfaces";
 import { BaseController } from "../common";
 import { TYPES } from "../dependencyInjectionTypes";
 import { setTimeout } from "timers/promises";
@@ -13,6 +13,7 @@ export class MovieController extends BaseController {
 
     this.handlers = [
       this.getMovieList,
+      this.getMovieActors,
     ];
   }
   
@@ -44,6 +45,33 @@ export class MovieController extends BaseController {
       await setTimeout(1000);
 
       return movies;
+    });
+  }
+
+  getMovieActors(fastify: FastifyInstance) {
+    const queryStringJsonSchema: JSONSchemaType<GetMovieActorsQuery> = {
+      type: 'object',
+      properties: {
+        movieUrlName: { type: 'string' },
+      },
+      required: ['movieUrlName'],
+    };
+
+    const schema: FastifySchema = {
+      querystring: queryStringJsonSchema,
+    };
+    
+    fastify.get<{
+      Querystring: GetMovieActorsQuery,
+      Reply: GetMovieActorsReply,
+    }>('/get-movie-actors', { schema }, async (request, reply) => {
+      const { movieUrlName } = request.query;
+
+      const actors = await this.dataProvider.getMovieActors(movieUrlName);
+
+      await setTimeout(1000);
+
+      return actors;
     });
   }
 }

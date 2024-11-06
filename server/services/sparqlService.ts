@@ -1,7 +1,7 @@
 import SparqlClient from 'sparql-http-client';
 import { injectable } from 'inversify';
 
-import { DataProvider, DataProviderError, Movie } from "../interfaces";
+import { Actor, DataProvider, DataProviderError, Movie } from "../interfaces";
 
 @injectable()
 export class SrarqlDataProviderService implements DataProvider {
@@ -17,22 +17,17 @@ export class SrarqlDataProviderService implements DataProvider {
   
         const query = `
           PREFIX dbo: <http://dbpedia.org/ontology/>
-          PREFIX dbr: <http://dbpedia.org/resource/>
           PREFIX dbp: <http://dbpedia.org/property/>
           PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-          PREFIX foaf: <http://xmlns.com/foaf/0.1/>
           
-          SELECT ?movie_name ?movie_comment ?director_name
+          SELECT ?movie ?name ?url_name
           WHERE {
-            ?movie a dbo:Film.
-            ?movie foaf:name ?movie_name.
-            ?movie rdfs:comment ?movie_comment.
-            ?movie dbo:director ?director.
-            ?director foaf:name ?director_name.
+            ?movie a dbo:Film ;
+                   rdfs:label ?name .
           
-            FILTER (lang(?movie_name) = "en")
-            FILTER (lang(?movie_comment) = "en")
-            FILTER (lang(?director_name) = "en")
+            FILTER (lang(?name) = "uk" || lang(?name) = "en")
+
+            BIND(STRAFTER(STR(?movie), "resource/") AS ?url_name)
           }
   
           LIMIT ${limit}
@@ -42,17 +37,15 @@ export class SrarqlDataProviderService implements DataProvider {
         const stream = this.client.query.select(query);
   
         for await (const row of stream) {
-          console.log(row);
           movies.push({
-            name: row.movie_name.value,
-            description: row.movie_comment.value,
-            director: row.director_name.value,
+            name: row.name.value,
+            urlName: row.url_name.value,
           });
         }
-
   
         return movies;
       } catch (e) {
+        console.log(e);
         // return {
         //   status: e.status,
         //   message: e.message,
@@ -63,5 +56,53 @@ export class SrarqlDataProviderService implements DataProvider {
           status: 0
         };
       }
+  }
+
+  async getMovieActors(movieName: string): Promise<DataProviderError | Actor[]> {
+    try {
+      const actors: Actor[] = [];
+
+      const query = `
+        PREFIX dbo: <http://dbpedia.org/ontology/>
+        PREFIX dbr: <http://dbpedia.org/resource/>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        
+        SELECT STR(?actor_name) AS ?actor_name
+        WHERE {
+          # Вказуємо конкретний фільм, наприклад "Назва_Фільму"
+          dbr:${movieName} dbo:starring ?actor .
+          
+          # Отримуємо ім'я актора
+          ?actor rdfs:label ?actor_name .
+          
+          # Фільтруємо за мовою, щоб отримати англійські або українські імена
+          FILTER (lang(?actor_name) = "en" || lang(?actor_name) = "uk")
+        }
+
+        LIMIT 10
+      `;
+
+      const stream = this.client.query.select(query);
+
+      for await (const row of stream) {
+        console.log(row);
+        actors.push({
+          name: row.actor_name.value,
+        });
+      }
+
+
+      return actors;
+    } catch (e) {
+      // return {
+      //   status: e.status,
+      //   message: e.message,
+      // }
+
+      return {
+        message: 'err',
+        status: 0
+      };
+    }
   }
 }
