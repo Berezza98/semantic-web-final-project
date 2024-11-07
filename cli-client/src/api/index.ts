@@ -1,1 +1,1 @@
-export * from './getMovies.js';
+export * from "./getMovies.js";

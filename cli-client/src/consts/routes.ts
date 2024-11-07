@@ -1,5 +1,6 @@
 export const ROUTES = {
   HOME: 'HOME',
+  ACTORS: 'ACTORS',
 } as const;
 
-export type ROUTE = typeof ROUTES[keyof typeof ROUTES];
+export type Route = typeof ROUTES[keyof typeof ROUTES];

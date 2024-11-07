@@ -3,6 +3,7 @@ import { Home } from './Pages/Home.js';
 import { ErrorPage } from './Pages/Error.js';
 import { useGetCurrentRoute } from './hooks/index.js';
 import { ROUTES } from './consts/index.js';
+import { ActorsPage } from './Pages/Actors.js';
 
 export const App = () => {
   const { exit } = useApp();
@@ -19,6 +20,7 @@ export const App = () => {
 	});
 
   if (currentRoute === ROUTES.HOME) return <Home />;
+  if (currentRoute === ROUTES.ACTORS) return <ActorsPage />;
 
   return <ErrorPage />;
 }

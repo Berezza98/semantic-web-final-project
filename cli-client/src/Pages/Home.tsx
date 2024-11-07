@@ -1,42 +1,38 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Loader } from '../components/Loader.js';
 import { getMovies } from '../api/getMovies.js';
 import { Movie } from '../interfaces/Movie.js';
 import SelectInput from 'ink-select-input';
+import { useNavigate, useQuery } from '../hooks/index.js';
+import { ROUTES } from '../consts/index.js';
 
 export const Home = () => {
-  const [loading, setLoading] = useState(false);
-  const [movies, setMovies] = useState<Movie[]>([]);
 
-	useEffect(() => {
-		async function loadingMovies() {
-      setLoading(true);
-      const m = await getMovies(0);
+  const navigate = useNavigate();
 
-      setMovies(m);
-      setLoading(false);
-    }
-
-    loadingMovies();
-	}, []);
+	const moviesQuery = useQuery({
+    queryFn: async () => getMovies(0),
+  })
 
   type Item<T> = NonNullable<React.ComponentProps<typeof SelectInput>['items']>[0] & {
     value: T
   };
 
   const items = useMemo<Item<Movie>[]>(() => {
-    return movies.map((m, i) => ({
+    if (!moviesQuery.data) return [];
+
+    return moviesQuery.data.map((m, i) => ({
       key: m.name + i,
       label: m.name,
       value: m,
     }));
-  }, [movies]);
+  }, [moviesQuery.data]);
 
   const handleSelect = (item: Item<Movie>) => {
-		console.log(item);
+    navigate(ROUTES.ACTORS);
 	};
 
-  if (loading) return <Loader />;
+  if (moviesQuery.isLoading) return <Loader />;
 
 	return (
     <SelectInput<Movie> items={items} onSelect={handleSelect} />
