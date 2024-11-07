@@ -29,7 +29,7 @@ export const Home = () => {
   }, [moviesQuery.data]);
 
   const handleSelect = (item: Item<Movie>) => {
-    navigate(ROUTES.ACTORS);
+    navigate(ROUTES.ACTORS, item.value);
 	};
 
   if (moviesQuery.isLoading) return <Loader />;
