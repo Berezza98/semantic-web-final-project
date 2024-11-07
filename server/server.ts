@@ -6,10 +6,12 @@ import { TYPES } from './dependencyInjectionTypes';
 @injectable()
 export class WebServer {
   private fastify: FastifyInstance = Fastify({
-    logger: true
+    // logger: true
   });
 
-  constructor (@inject(TYPES.MovieController) private movieController: BaseController) {
+  constructor(
+    @inject(TYPES.MovieController) private movieController: BaseController
+  ) {
     this.addControllers();
   }
 
@@ -19,10 +21,10 @@ export class WebServer {
 
   async start() {
     try {
-      await this.fastify.listen({ port: 3210 })
+      await this.fastify.listen({ port: 3210 });
     } catch (err) {
-      this.fastify.log.error(err)
-      process.exit(1)
+      this.fastify.log.error(err);
+      process.exit(1);
     }
   }
 }

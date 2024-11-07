@@ -8,7 +8,7 @@ interface RouterValue {
 }
 
 const value: RouterValue = {
-  currentRoute: ROUTES.HOME,
+  currentRoute: ROUTES.MOVIE_LIST,
   navigate: () => {},
   currentRouteData: undefined,
 } 
@@ -16,7 +16,7 @@ const value: RouterValue = {
 export const routerContext = createContext<RouterValue>(value);
 
 export const RouterContext: FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentRoute, setCurrentRoute] = useState<Route>(ROUTES.HOME);
+  const [currentRoute, setCurrentRoute] = useState<Route>(ROUTES.MOVIE_LIST);
   const [currentRouteData, setCurrentRouteData] = useState<unknown>();
 
   const navigate = useCallback((route: Route, navigationData?: unknown) => {

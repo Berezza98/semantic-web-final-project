@@ -1,4 +1,4 @@
-import { useInput } from "ink";
+import { useInput, Text } from "ink";
 import { useNavigate } from "../hooks/useNavigate.js";
 import { ROUTES } from "../consts/routes.js";
 import { useGetCurrentRouteData } from "../hooks/useGetCurrentRouteData.js";
@@ -21,12 +21,13 @@ export const ActorsPage = () => {
   const actorsQuery = useQuery<Actor[]>({
     queryFn: async () => {
       return getActors(routerData.urlName);
-    }
+    },
+    cacheKey: `actors_${routerData.urlName}`,
   })
 
   useInput((input, key) => {
 		if (key.delete) {
-      navigate(ROUTES.HOME);
+      navigate(ROUTES.MOVIE_LIST);
     }
 	});
 
@@ -41,6 +42,7 @@ export const ActorsPage = () => {
   }, [actorsQuery.data]);
 
   if (actorsQuery.isLoading) return <Loader />;
+  if (actorsQuery.error) return <Text color="red">Loading error</Text>
 
   return (
     <SelectInput<Actor> items={items} />

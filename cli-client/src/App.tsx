@@ -1,5 +1,5 @@
 import { useApp, useInput } from 'ink';
-import { Home } from './Pages/Home.js';
+import { MoviesListPage } from './Pages/MoviesListPage.js';
 import { ErrorPage } from './Pages/Error.js';
 import { useGetCurrentRoute } from './hooks/index.js';
 import { ROUTES } from './consts/index.js';
@@ -19,7 +19,7 @@ export const App = () => {
 		}
 	});
 
-  if (currentRoute === ROUTES.HOME) return <Home />;
+  if (currentRoute === ROUTES.MOVIE_LIST) return <MoviesListPage />;
   if (currentRoute === ROUTES.ACTORS) return <ActorsPage />;
 
   return <ErrorPage />;

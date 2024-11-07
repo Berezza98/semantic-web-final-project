@@ -6,12 +6,13 @@ import SelectInput from 'ink-select-input';
 import { useNavigate, useQuery } from '../hooks/index.js';
 import { ROUTES } from '../consts/index.js';
 
-export const Home = () => {
+export const MoviesListPage = () => {
 
   const navigate = useNavigate();
 
 	const moviesQuery = useQuery({
     queryFn: async () => getMovies(0),
+    cacheKey: 'movies',
   })
 
   type Item<T> = NonNullable<React.ComponentProps<typeof SelectInput>['items']>[0] & {
