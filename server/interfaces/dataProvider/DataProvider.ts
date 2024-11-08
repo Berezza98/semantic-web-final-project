@@ -1,5 +1,5 @@
-import { Movie } from "./Movie";
-import { Actor } from "./Actor";
+import { Movie } from './Movie';
+import { Actor, FullActorInformation } from './Actor';
 
 interface GetMoviesArgs {
   limit?: number;
@@ -9,6 +9,9 @@ interface GetMoviesArgs {
 export interface DataProvider {
   getMovies: (args: GetMoviesArgs) => Promise<Movie[] | DataProviderError>;
   getMovieActors: (movieName: string) => Promise<Actor[] | DataProviderError>;
+  getActorFullInformation: (
+    actorName: string
+  ) => Promise<FullActorInformation | DataProviderError>;
 }
 
 export interface DataProviderError {

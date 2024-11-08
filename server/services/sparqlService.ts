@@ -1,7 +1,13 @@
 import SparqlClient from 'sparql-http-client';
 import { injectable } from 'inversify';
 
-import { Actor, DataProvider, DataProviderError, Movie } from '../interfaces';
+import {
+  Actor,
+  DataProvider,
+  DataProviderError,
+  FullActorInformation,
+  Movie,
+} from '../interfaces';
 
 @injectable()
 export class SrarqlDataProviderService implements DataProvider {
@@ -100,6 +106,67 @@ export class SrarqlDataProviderService implements DataProvider {
       }
 
       return actors;
+    } catch (e) {
+      // return {
+      //   status: e.status,
+      //   message: e.message,
+      // }
+
+      return {
+        message: 'err',
+        status: 0,
+      };
+    }
+  }
+
+  async getActorFullInformation(
+    actorName: string
+  ): Promise<FullActorInformation | DataProviderError> {
+    try {
+      console.log('getActorFullInformation');
+      const query = `
+        PREFIX dbo: <http://dbpedia.org/ontology/>
+        PREFIX dbp: <http://dbpedia.org/property/>
+        PREFIX dbr: <http://dbpedia.org/resource/>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+        SELECT ?name ?birthDate ?birthPlace ?nationality ?occupation ?abstract
+        WHERE {
+          <http://dbpedia.org/resource/${actorName}> rdfs:label ?name ;
+                        dbp:birthDate ?birthDate ;
+                        dbp:birthPlace ?birthPlace ;
+                        dbp:nationality ?nationality ;
+                        dbp:occupation ?occupation ;
+                        dbo:abstract ?abstract .
+          
+        # Використовуємо OPTIONAL для кожного поля, щоб воно повертало порожній рядок, якщо значення немає
+          OPTIONAL { <http://dbpedia.org/resource/${actorName}> dbo:birthDate ?birthDate }
+          OPTIONAL { <http://dbpedia.org/resource/${actorName}> dbo:birthPlace ?birthPlace }
+          OPTIONAL { <http://dbpedia.org/resource/${actorName}> dbo:nationality ?nationality }
+          OPTIONAL { <http://dbpedia.org/resource/${actorName}> dbo:occupation ?occupation }
+          OPTIONAL { <http://dbpedia.org/resource/${actorName}> dbo:abstract ?abstract }
+
+          FILTER (lang(?name) = "en")
+          FILTER (lang(?abstract) = "en")
+        }
+      `;
+
+      const stream = this.client.query.select(query);
+
+      const actors: FullActorInformation[] = [];
+
+      for await (const row of stream) {
+        actors.push({
+          name: row.name.value,
+          abstract: row.abstract.value,
+          birthDate: row.birthDate.value,
+          birthPlace: row.birthPlace.value,
+          nationality: row.nationality.value,
+          occupation: row.occupation.value,
+        });
+      }
+
+      return actors[0];
     } catch (e) {
       // return {
       //   status: e.status,

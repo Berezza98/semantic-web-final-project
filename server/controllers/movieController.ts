@@ -3,6 +3,8 @@ import { inject, injectable } from 'inversify';
 import { JSONSchemaType } from 'ajv';
 import {
   DataProvider,
+  GetActorFullInformationQuery,
+  GetActorFullInformationReply,
   GetMovieActorsQuery,
   GetMovieActorsReply,
   GetMoviesQuery,
@@ -18,7 +20,11 @@ export class MovieController extends BaseController {
   constructor(@inject(TYPES.DataProvider) private dataProvider: DataProvider) {
     super();
 
-    this.handlers = [this.getMovieList, this.getMovieActors];
+    this.handlers = [
+      this.getMovieList,
+      this.getMovieActors,
+      this.getActorFullInformation,
+    ];
   }
 
   getMovieList(fastify: FastifyInstance) {
@@ -80,6 +86,38 @@ export class MovieController extends BaseController {
       if (isDataProviderError(actors)) reply.code(400);
 
       return actors;
+    });
+  }
+
+  getActorFullInformation(fastify: FastifyInstance) {
+    const queryStringJsonSchema: JSONSchemaType<GetActorFullInformationQuery> =
+      {
+        type: 'object',
+        properties: {
+          actorUrlName: { type: 'string' },
+        },
+        required: ['actorUrlName'],
+      };
+
+    const schema: FastifySchema = {
+      querystring: queryStringJsonSchema,
+    };
+
+    fastify.get<{
+      Querystring: GetActorFullInformationQuery;
+      Reply: GetActorFullInformationReply;
+    }>('/get-actor', { schema }, async (request, reply) => {
+      const { actorUrlName } = request.query;
+
+      const actorInfo = await this.dataProvider.getActorFullInformation(
+        actorUrlName
+      );
+
+      await setTimeout(500);
+
+      if (isDataProviderError(actorInfo)) reply.code(400);
+
+      return actorInfo;
     });
   }
 }
