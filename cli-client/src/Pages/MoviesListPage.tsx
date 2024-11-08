@@ -1,14 +1,14 @@
 import React, { useMemo } from 'react';
-import { Loader } from '../components/Loader.js';
 import { getMovies } from '../api/getMovies.js';
 import { Movie } from '../interfaces/Movie.js';
 import SelectInput from 'ink-select-input';
 import { useNavigate, useQuery } from '../hooks/index.js';
 import { ROUTES } from '../consts/index.js';
+import { Page } from '../components/Page.js';
 
 export const MoviesListPage = () => {
 
-  const navigate = useNavigate();
+  const { navigate } = useNavigate();
 
 	const moviesQuery = useQuery({
     queryFn: async () => getMovies(0),
@@ -30,12 +30,12 @@ export const MoviesListPage = () => {
   }, [moviesQuery.data]);
 
   const handleSelect = (item: Item<Movie>) => {
-    navigate(ROUTES.ACTORS, item.value);
+    navigate(ROUTES.ACTOR_LIST, item.value);
 	};
 
-  if (moviesQuery.isLoading) return <Loader />;
-
 	return (
-    <SelectInput<Movie> items={items} onSelect={handleSelect} />
+    <Page title="Movies" isLoading={moviesQuery.isLoading}>
+      <SelectInput<Movie> items={items} onSelect={handleSelect} />
+    </Page>
   );
 }
