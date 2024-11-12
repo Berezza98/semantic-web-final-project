@@ -21,7 +21,6 @@
     "ajv": "^8.17.1",
     "fastify": "^5.1.0",
     "inversify": "^6.0.3",
-    "reflect-metadata": "^0.2.2",
-    "sparql-http-client": "^3.0.1"
+    "reflect-metadata": "^0.2.2"
   }
 }

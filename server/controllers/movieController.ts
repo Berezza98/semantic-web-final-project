@@ -146,7 +146,7 @@ export class MovieController extends BaseController {
     }>('/get-movie', { schema }, async (request, reply) => {
       const { movieUrlName } = request.query;
 
-      console.log(movieUrlName);
+      console.log('movieUrlName: ', movieUrlName);
       const movieInfo = await this.dataProvider.getMovieFullInformation(
         movieUrlName
       );

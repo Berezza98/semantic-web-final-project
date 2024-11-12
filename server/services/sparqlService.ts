@@ -1,5 +1,4 @@
-import SparqlClient from 'sparql-http-client';
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 
 import {
   Actor,
@@ -7,52 +6,48 @@ import {
   DataProviderError,
   FullActorInformation,
   FullMovieInformation,
+  HTTPClient,
   Movie,
+  SparqlParser,
 } from '../interfaces';
+import { TYPES } from '../dependencyInjectionTypes';
+import { SparqlResponse } from '../types';
 
 @injectable()
-export class SrarqlDataProviderService implements DataProvider {
-  client: SparqlClient;
-
-  constructor() {
-    this.client = new SparqlClient({
-      endpointUrl: 'https://dbpedia.org/sparql',
-    });
-  }
+export class SparqlDataProviderService implements DataProvider {
+  constructor(
+    @inject(TYPES.HTTPClient) private client: HTTPClient,
+    @inject(TYPES.SparqlParser) private sparqlParser: SparqlParser
+  ) {}
 
   async getMovies({ limit = 10, offset = 0 } = {}): Promise<
     Movie[] | DataProviderError
   > {
     try {
-      const movies: Movie[] = [];
-
       const query = `
           PREFIX dbo: <http://dbpedia.org/ontology/>
           PREFIX dbp: <http://dbpedia.org/property/>
           PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
           
-          SELECT ?movie ?name ?url_name
+          SELECT ?movie ?name ?urlName
           WHERE {
             ?movie a dbo:Film ;
                    rdfs:label ?name .
           
             FILTER (lang(?name) = "uk" || lang(?name) = "en")
 
-            BIND(STRAFTER(STR(?movie), "resource/") AS ?url_name)
+            BIND(STRAFTER(STR(?movie), "resource/") AS ?urlName)
           }
   
           LIMIT ${limit}
           OFFSET ${offset}
         `;
 
-      const stream = this.client.query.select(query);
-
-      for await (const row of stream) {
-        movies.push({
-          name: row.name.value,
-          urlName: row.url_name.value,
-        });
-      }
+      const moviesSparql = await this.client.get<SparqlResponse<Movie>>(
+        '',
+        query
+      );
+      const movies = this.sparqlParser.parse(moviesSparql);
 
       return movies;
     } catch (e) {
@@ -73,16 +68,12 @@ export class SrarqlDataProviderService implements DataProvider {
     movieName: string
   ): Promise<DataProviderError | Actor[]> {
     try {
-      const actors: Actor[] = [];
-
-      console.log('getMovieActors: ', movieName);
-
       const query = `
         PREFIX dbo: <http://dbpedia.org/ontology/>
         PREFIX dbr: <http://dbpedia.org/resource/>
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
         
-        SELECT (STR(?actor_name) AS ?actor_name) ?url_name
+        SELECT (STR(?actor_name) AS ?name) ?urlName
         WHERE {
           # Вказуємо конкретний фільм, наприклад "Назва_Фільму"
           <http://dbpedia.org/resource/${movieName}> dbo:starring ?actor .
@@ -93,24 +84,27 @@ export class SrarqlDataProviderService implements DataProvider {
           # Фільтруємо за мовою, щоб отримати англійські або українські імена
           FILTER (lang(?actor_name) = "en" || lang(?actor_name) = "uk")
 
-          BIND(STRAFTER(STR(?actor), "resource/") AS ?url_name)
+          BIND(STRAFTER(STR(?actor), "resource/") AS ?urlName)
         }
 
         LIMIT 10
       `;
 
-      const stream = this.client.query.select(query);
+      const actorsSparql = await this.client.get<SparqlResponse<Actor>>(
+        '',
+        query
+      );
 
-      for await (const row of stream) {
-        console.log(row);
-        actors.push({
-          name: row.actor_name.value,
-          urlName: row.url_name.value,
-        });
-      }
+      const actors = this.sparqlParser.parse(actorsSparql);
 
       return actors;
     } catch (e) {
+      console.log(e);
+      if (e instanceof Error) {
+        const entries = Object.entries(e);
+        console.log(entries);
+      }
+
       // return {
       //   status: e.status,
       //   message: e.message,
@@ -176,24 +170,12 @@ export class SrarqlDataProviderService implements DataProvider {
         }
       `;
 
-      const stream = this.client.query.select(query);
+      const fullInformationSparql = await this.client.get<
+        SparqlResponse<FullActorInformation>
+      >('', query);
+      const fullInformation = this.sparqlParser.parse(fullInformationSparql);
 
-      const actors: FullActorInformation[] = [];
-
-      for await (const row of stream) {
-        console.log(row);
-        actors.push({
-          name: row.name?.value || '',
-          abstract: row.abstract?.value || '',
-          birthDate: row.birthDate?.value || '',
-          birthPlace: row.birthPlace?.value || '',
-          nationality: row.nationality?.value || '',
-          occupation: row.occupation?.value || '',
-        });
-      }
-
-      console.log(actors);
-      return actors[0];
+      return fullInformation[0];
     } catch (e) {
       console.log(e);
       // return {
@@ -218,15 +200,15 @@ export class SrarqlDataProviderService implements DataProvider {
         PREFIX dbr: <http://dbpedia.org/resource/>
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
-        SELECT ?title (COALESCE(?releaseDate, "") AS ?releaseDate)
+        SELECT ?name (COALESCE(?releaseDate, "") AS ?releaseDate)
                       (COALESCE(?directorName, "") AS ?director)
                       (COALESCE(?producerName, "") AS ?producer)
                       (COALESCE(?runtime, "") AS ?runtime)
                       (COALESCE(?genre, "") AS ?genre)
-                      (COALESCE(?abstract, "") AS ?abstract)
+                      (COALESCE(?abstract, "") AS ?descr)
         WHERE {
           # Використовуємо URI фільму
-          <http://dbpedia.org/resource/${movieName}> rdfs:label ?title .
+          <http://dbpedia.org/resource/${movieName}> rdfs:label ?name .
 
           # OPTIONAL для кожної властивості
           OPTIONAL { <http://dbpedia.org/resource/${movieName}> dbo:releaseDate ?releaseDate }
@@ -252,30 +234,18 @@ export class SrarqlDataProviderService implements DataProvider {
           OPTIONAL { <http://dbpedia.org/resource/${movieName}> dbo:abstract ?abstract }
 
           # Фільтруємо назву та опис для англійської мови
-          FILTER (lang(?title) = "en")
+          FILTER (lang(?name) = "en")
           FILTER (lang(?abstract) = "en")
         }
       `;
 
-      const stream = this.client.query.select(query);
+      const fullInformationSparql = await this.client.get<
+        SparqlResponse<FullMovieInformation>
+      >('', query);
+      const fullInformation = this.sparqlParser.parse(fullInformationSparql);
+      console.log(fullInformation);
 
-      const movies: FullMovieInformation[] = [];
-
-      for await (const row of stream) {
-        console.log(row);
-        movies.push({
-          name: row.title?.value || '',
-          descr: row.abstract?.value || '',
-          director: row.director?.value || '',
-          genre: row.birthPlace?.genre || '',
-          producer: row.producer?.value || '',
-          releaseDate: row.releaseDate?.value || '',
-          runtime: row.runtime?.value || '',
-        });
-      }
-
-      console.log(movies);
-      return movies[0];
+      return fullInformation[0];
     } catch (e) {
       console.log(e);
       // return {
