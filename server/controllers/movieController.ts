@@ -14,6 +14,10 @@ import { BaseController } from '../common';
 import { TYPES } from '../dependencyInjectionTypes';
 import { setTimeout } from 'timers/promises';
 import { isDataProviderError } from '../guards';
+import {
+  GetMovieFullInformationQuery,
+  GetMovieFullInformationReply,
+} from '../interfaces/server/GetMovieFullInformation';
 
 @injectable()
 export class MovieController extends BaseController {
@@ -24,6 +28,7 @@ export class MovieController extends BaseController {
       this.getMovieList,
       this.getMovieActors,
       this.getActorFullInformation,
+      this.getMovieFullInformation,
     ];
   }
 
@@ -118,6 +123,39 @@ export class MovieController extends BaseController {
       if (isDataProviderError(actorInfo)) reply.code(400);
 
       return actorInfo;
+    });
+  }
+
+  getMovieFullInformation(fastify: FastifyInstance) {
+    const queryStringJsonSchema: JSONSchemaType<GetMovieFullInformationQuery> =
+      {
+        type: 'object',
+        properties: {
+          movieUrlName: { type: 'string' },
+        },
+        required: ['movieUrlName'],
+      };
+
+    const schema: FastifySchema = {
+      querystring: queryStringJsonSchema,
+    };
+
+    fastify.get<{
+      Querystring: GetMovieFullInformationQuery;
+      Reply: GetMovieFullInformationReply;
+    }>('/get-movie', { schema }, async (request, reply) => {
+      const { movieUrlName } = request.query;
+
+      console.log(movieUrlName);
+      const movieInfo = await this.dataProvider.getMovieFullInformation(
+        movieUrlName
+      );
+
+      await setTimeout(500);
+
+      if (isDataProviderError(movieInfo)) reply.code(400);
+
+      return movieInfo;
     });
   }
 }

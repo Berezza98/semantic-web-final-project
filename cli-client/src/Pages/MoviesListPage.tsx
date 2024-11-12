@@ -7,13 +7,12 @@ import { ROUTES } from '../consts/index.js';
 import { Page } from '../components/Page.js';
 
 export const MoviesListPage = () => {
-
   const { navigate } = useNavigate();
 
 	const moviesQuery = useQuery({
     queryFn: async () => getMovies(0),
     cacheKey: 'movies',
-  })
+  });
 
   type Item<T> = NonNullable<React.ComponentProps<typeof SelectInput>['items']>[0] & {
     value: T
@@ -30,7 +29,7 @@ export const MoviesListPage = () => {
   }, [moviesQuery.data]);
 
   const handleSelect = (item: Item<Movie>) => {
-    navigate(ROUTES.ACTOR_LIST, item.value);
+    navigate(ROUTES.MOVIE, item.value);
 	};
 
 	return (

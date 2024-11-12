@@ -7,7 +7,7 @@ interface UseQueryArgs<T> {
 
 interface UseQueryResult<T> {
   isLoading: boolean;
-  error: unknown;
+  error?: Error;
   data?: T;
 }
 
@@ -19,7 +19,7 @@ export const useQuery = <T>({
 }: UseQueryArgs<T>): UseQueryResult<T> => {
   const [data, setData] = useState<T>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<unknown>();
+  const [error, setError] = useState<Error | undefined>();
 
   useEffect(() => {
     async function run() {
@@ -35,7 +35,7 @@ export const useQuery = <T>({
 
         if (cacheKey) cache[cacheKey] = response;
       } catch (e) {
-        setError(e);
+        if (e instanceof Error) setError(e);
       } finally {
         setIsLoading(false);
       }

@@ -5,6 +5,7 @@ import { useGetCurrentRoute } from './hooks/index.js';
 import { ROUTES } from './consts/index.js';
 import { ActorListPage } from './Pages/ActorListPage.js';
 import { ActorPage } from './Pages/ActorPage.js';
+import { MoviePage } from './Pages/MoviePage.js';
 
 export const App = () => {
   const { exit } = useApp();
@@ -23,6 +24,7 @@ export const App = () => {
   if (currentRoute === ROUTES.MOVIE_LIST) return <MoviesListPage />;
   if (currentRoute === ROUTES.ACTOR_LIST) return <ActorListPage />;
   if (currentRoute === ROUTES.ACTOR) return <ActorPage />;
+  if (currentRoute === ROUTES.MOVIE) return <MoviePage />;
 
   return <ErrorPage />;
 }

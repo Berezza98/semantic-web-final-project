@@ -1,5 +1,6 @@
 export interface Actor {
   name: string;
+  urlName: string;
 }
 
 export interface FullActorInformation {
