@@ -14,7 +14,6 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^22.8.6",
-    "@types/sparql-http-client": "^3.0.4",
     "tsx": "^4.19.2"
   },
   "dependencies": {

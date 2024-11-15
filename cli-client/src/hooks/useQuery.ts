@@ -41,8 +41,7 @@ export const useQuery = <T>({
       }
     }
     run();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [cacheKey, queryFn]);
 
   const result = useMemo(() => {
     return {

@@ -7,5 +7,6 @@ export const useNavigate = () => {
   return {
     navigate: context.navigate,
     back: context.back,
+    changeCurrentRouteData: context.changeCurrentRouteData,
   };
 };
