@@ -15,8 +15,8 @@ type Item<T> = NonNullable<React.ComponentProps<typeof SelectInput>['items']>[0]
 };
 
 export const ActorListPage = () => {
-  const { back, navigate } = useNavigate();
-  const routerData = useGetCurrentRouteData<Movie>();
+  const { back, navigate, changeCurrentRouteData } = useNavigate();
+  const routerData = useGetCurrentRouteData<Movie & { initialIndex?: number }>();
 
   const actorsQuery = useQuery<Actor[]>({
     queryFn: async () => {
@@ -45,6 +45,15 @@ export const ActorListPage = () => {
     }));
   }, [actorsQuery.data]);
 
+  const handleHighlight = useCallback((item: Item<Movie>) => {
+    const index = items.indexOf(item);
+
+    changeCurrentRouteData((currentRouteData) => ({
+      ...currentRouteData,
+      initialIndex: index,
+    }));
+  }, [changeCurrentRouteData, items]);
+
   return (
     <Page title="Actors" isLoading={actorsQuery.isLoading}>
         <Text>Актори фільму: {routerData.name}</Text>
@@ -52,7 +61,12 @@ export const ActorListPage = () => {
         {
           actorsQuery.error
             ? <Text color="red">Loading error</Text>
-            : <SelectInput<Actor> items={items} onSelect={selectActor} />
+            : <SelectInput<Actor>
+                items={items}
+                initialIndex={routerData?.initialIndex}
+                onHighlight={handleHighlight}
+                onSelect={selectActor}
+              />
         }
     </Page>
   );
