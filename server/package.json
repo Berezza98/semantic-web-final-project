@@ -1,5 +1,5 @@
 {
-  "name": "server",
+  "name": "movie_shell_server",
   "version": "1.0.0",
   "description": "",
   "type": "module",
