@@ -9,8 +9,6 @@ export class SparqlParserService implements SparqlParser {
   ): T[] {
     const results: T[] = [];
 
-    console.log('PARSE');
-    console.log(sparqlResponse);
     for (const binding of sparqlResponse.results.bindings) {
       const obj = sparqlResponse.head.vars.reduce((acc, key) => {
         acc[key] = binding[key].value as T[keyof T];

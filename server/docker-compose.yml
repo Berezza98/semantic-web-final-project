@@ -1,0 +1,31 @@
+version: '3'
+services:
+  redis:
+    image: redis:latest
+    ports:
+      - '6379:6379'
+    networks:
+      - my-network
+
+  node-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: my-node-app-container
+    ports:
+      - '3210:3210'
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PORT=3210
+    depends_on:
+      - redis
+    networks:
+      - my-network
+    volumes:
+      - ./:/app
+      - /app/node_modules
+
+networks:
+  my-network:
+    driver: bridge

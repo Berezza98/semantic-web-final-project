@@ -11,9 +11,6 @@ export class HTTPClientService implements HTTPClient {
 
   async get<T>(endpoint: string, query: string) {
     try {
-      console.log(
-        `${this.configurations.baseUrl}${endpoint}${encodeURIComponent(query)}`
-      );
       const response = await fetch(
         `${this.configurations.baseUrl}${endpoint}${encodeURIComponent(query)}`
       );

@@ -102,7 +102,6 @@ export class SparqlDataProviderService implements DataProvider {
       console.log(e);
       if (e instanceof Error) {
         const entries = Object.entries(e);
-        console.log(entries);
       }
 
       // return {
@@ -243,7 +242,6 @@ export class SparqlDataProviderService implements DataProvider {
         SparqlResponse<FullMovieInformation>
       >('', query);
       const fullInformation = this.sparqlParser.parse(fullInformationSparql);
-      console.log(fullInformation);
 
       return fullInformation[0];
     } catch (e) {

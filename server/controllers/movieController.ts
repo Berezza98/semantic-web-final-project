@@ -2,6 +2,7 @@ import { FastifyInstance, FastifySchema } from 'fastify';
 import { inject, injectable } from 'inversify';
 import { JSONSchemaType } from 'ajv';
 import {
+  CachingClient,
   DataProvider,
   GetActorFullInformationQuery,
   GetActorFullInformationReply,
@@ -9,6 +10,7 @@ import {
   GetMovieActorsReply,
   GetMoviesQuery,
   GetMoviesReply,
+  Movie,
 } from '../interfaces';
 import { BaseController } from '../common';
 import { TYPES } from '../dependencyInjectionTypes';
@@ -21,7 +23,12 @@ import {
 
 @injectable()
 export class MovieController extends BaseController {
-  constructor(@inject(TYPES.DataProvider) private dataProvider: DataProvider) {
+  handlers: ((fastify: FastifyInstance) => void)[];
+
+  constructor(
+    @inject(TYPES.DataProvider) private dataProvider: DataProvider,
+    @inject(TYPES.CachingClient) private cachingClient: CachingClient
+  ) {
     super();
 
     this.handlers = [
@@ -32,7 +39,7 @@ export class MovieController extends BaseController {
     ];
   }
 
-  getMovieList(fastify: FastifyInstance) {
+  async getMovieList(fastify: FastifyInstance) {
     const queryStringJsonSchema: JSONSchemaType<GetMoviesQuery> = {
       type: 'object',
       properties: {
@@ -50,6 +57,10 @@ export class MovieController extends BaseController {
       Querystring: GetMoviesQuery;
       Reply: GetMoviesReply;
     }>('/get-movies', { schema }, async (request, reply) => {
+      const cache = await this.cachingClient.get<Movie[]>(request.url);
+
+      if (cache) return cache;
+
       const { limit, offset } = request.query;
 
       const movies = await this.dataProvider.getMovies({
@@ -57,15 +68,17 @@ export class MovieController extends BaseController {
         offset,
       });
 
-      await setTimeout(500);
+      await setTimeout(5000);
 
       if (isDataProviderError(movies)) reply.code(400);
+
+      await this.cachingClient.set(request.url, movies);
 
       return movies;
     });
   }
 
-  getMovieActors(fastify: FastifyInstance) {
+  async getMovieActors(fastify: FastifyInstance) {
     const queryStringJsonSchema: JSONSchemaType<GetMovieActorsQuery> = {
       type: 'object',
       properties: {
@@ -94,7 +107,7 @@ export class MovieController extends BaseController {
     });
   }
 
-  getActorFullInformation(fastify: FastifyInstance) {
+  async getActorFullInformation(fastify: FastifyInstance) {
     const queryStringJsonSchema: JSONSchemaType<GetActorFullInformationQuery> =
       {
         type: 'object',
@@ -126,7 +139,7 @@ export class MovieController extends BaseController {
     });
   }
 
-  getMovieFullInformation(fastify: FastifyInstance) {
+  async getMovieFullInformation(fastify: FastifyInstance) {
     const queryStringJsonSchema: JSONSchemaType<GetMovieFullInformationQuery> =
       {
         type: 'object',
@@ -146,7 +159,6 @@ export class MovieController extends BaseController {
     }>('/get-movie', { schema }, async (request, reply) => {
       const { movieUrlName } = request.query;
 
-      console.log('movieUrlName: ', movieUrlName);
       const movieInfo = await this.dataProvider.getMovieFullInformation(
         movieUrlName
       );
