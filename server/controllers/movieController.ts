@@ -70,7 +70,10 @@ export class MovieController extends BaseController {
 
       await setTimeout(5000);
 
-      if (isDataProviderError(movies)) reply.code(400);
+      if (isDataProviderError(movies)) {
+        reply.code(400);
+        return movies;
+      }
 
       await this.cachingClient.set(request.url, movies);
 
